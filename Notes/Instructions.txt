@@ -1,0 +1,43 @@
+mkdir mon-infra && cd mon-infra
+
+[k3s_cluster]
+mon_serveur ansible_host=IP_DE_TON_SERVEUR ansible_user=root
+
+# Si tu n'utilises pas root mais un user 'ubuntu' ou 'debian', change ansible_user
+# Si ta clé SSH n'est pas celle par défaut, ajoute: ansible_ssh_private_key_file=~/.ssh/ta_cle
+
+ansible-playbook -i inventory.ini install-k3s.yml
+
+# mon accèss server:  ssh -i ~/.ssh/ovhserver-key ubuntu@151.80.232.74
+
+sudo kubectl get nodes
+
+#Configuer ubuntu comme proprio de kube en Configuer
+
+# 1. Créer le dossier de config caché s'il n'existe pas
+mkdir -p ~/.kube
+
+# 2. Copier le fichier de config admin de K3s vers ton dossier utilisateur
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+
+# 3. Te donner la propriété de ce fichier (remplace 'ubuntu' si ton user est différent)
+sudo chown ubuntu:ubuntu ~/.kube/config
+
+# 4. Ajuster les permissions pour que seul toi puisse le lire
+chmod 600 ~/.kube/config
+
+Forcer le chemin (Le Fix)
+Pour être sûr que ton système regarde le bon fichier, on va définir la variable d'environnement explicitement.
+
+Bash
+
+export KUBECONFIG=~/.kube/config
+
+# on ajoute cette variable à mon profile pour la persistance 
+echo 'export KUBECONFIG=~/.kube/config' >> ~/.bashrc
+source ~/.bashrc
+
+
+
+
+

@@ -1,0 +1,26 @@
+---
+- name: Installation du cluster K3s
+  hosts: k3s_cluster
+  become: yes # On va executer en tant que sudo/root
+
+  tasks:
+    - name: Mettre à jour le cache APT et les paquets
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Installer curl (un pré-requis)
+      apt:
+        name: curl
+        state: present
+
+    - name: Télécharger et installer K3s
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s #Si ce fichier existe, Ansible ne lance pas cette étape (Idempotence)
+
+    - name: Vérifier que le service K3s tourne
+      systemd:
+        name: k3s
+        state: started
+        enabled: yes
