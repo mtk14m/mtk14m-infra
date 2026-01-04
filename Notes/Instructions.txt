@@ -38,6 +38,51 @@ echo 'export KUBECONFIG=~/.kube/config' >> ~/.bashrc
 source ~/.bashrc
 
 
+kubectl create namespace argocd
+Registrty github
+
+docker tag my-collector:v2 ghrc.io/mtk14m/ops-dashboard-collector:v0.1.0 
+
+# On force l'architecture linux/amd64 et on push directement
+docker buildx build --platform linux/amd64 -t ghcr.io/mtk14m/ops-dashboard-collector:v0.1.0 --push .
+
+# Recupérer l'image docker qui tourne sur un pod
+kubectl get pods -l app=collector -o yaml | grep image:  
+kubectl get pods -l app=collector -o jsonpath="{.items[*].spec.containers[*].image}"
+
+# Generer le mp argocd 
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+
+# Mise en place des alert discord 
+#Crétion du secret webhook discord
+kubectl create secret generic discord-webhook-secret \
+  --from-literal=url="https://discord.com/api/webhooks/TON_URL_ICI" \
+  -n monitoring
 
 
+#forward les ports argocd, graphana et prometheus 
+kubectl port-forward svc/argocd-server -n argocd 8080:443
 
+kubectl port-forward svc/prometheus-operated -n monitoring 9090:9090
+
+kubectl port-forward svc/monitoring-stack-grafana -n monitoring 3000:80
+
+ kubectl port-forward svc/alertmanager-operated -n monitoring 9093:9093
+
+
+ Blog: 
+
+ Backend: 
+ poetry init --name "portfolio-backend" --description "API Backend Portfolio SRE" --author "TonNom <ton@email.com>" --python "^3.10"
+
+ # Framework & Serveur
+poetry add fastapi uvicorn[standard]
+
+# Base de données & ORM
+poetry add sqlalchemy psycopg2-binary alembic
+
+# Settings & Validation
+poetry add pydantic-settings email-validator python-multipart
+
+# Monitoring (Indispensable pour notre projet SRE)
+poetry add prometheus-fastapi-instrumentator
